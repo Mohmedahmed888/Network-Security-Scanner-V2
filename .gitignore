@@ -64,3 +64,12 @@ NetworkSecurityScanner
 !screenshots/*.jpg
 !screenshots/*.jpeg
 
+# Secrets & local overrides (never commit)
+.env
+.env.*
+*.pem
+id_rsa
+id_rsa.pub
+*-secrets.*
+credentials.json
+
