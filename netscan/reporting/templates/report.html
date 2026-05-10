@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>NetScan Report</title>
+    <style>
+      body { font-family: Arial, sans-serif; background: #0d1117; color: #c9d1d9; margin: 24px; }
+      h1,h2,h3 { color: #00d4ff; margin: 0.4em 0; }
+      .muted { color: #6e7681; }
+      .card { background: #131a24; border: 1px solid #1e2d3d; border-radius: 10px; padding: 14px 16px; margin: 12px 0; }
+      table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+      th, td { border-bottom: 1px solid #1e2d3d; padding: 8px 10px; text-align: left; vertical-align: top; }
+      th { color: #00d4ff; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+      .sev-Critical { color: #ff0055; font-weight: 700; }
+      .sev-High { color: #ff4d4d; font-weight: 700; }
+      .sev-Medium { color: #f78166; font-weight: 700; }
+      .sev-Low { color: #d29922; font-weight: 700; }
+      code { background: #070b12; padding: 2px 6px; border-radius: 6px; border: 1px solid #1e2d3d; }
+      a { color: #79c0ff; }
+    </style>
+  </head>
+  <body>
+    <h1>NetScan Report</h1>
+    <div class="muted">
+      Generated: {{ generated_at }}<br />
+      Subnet: {{ subnet }}<br />
+      Hosts: {{ host_count }}<br />
+      Ports: {{ ports }}
+    </div>
+
+    <div class="card">
+      <h2>Summary</h2>
+      <div>Total vulnerabilities: <b>{{ vuln_total }}</b></div>
+      <div class="muted">This report is best-effort; validate findings before taking action.</div>
+    </div>
+
+    {% for h in hosts %}
+      <div class="card">
+        <h2>{{ h.ip }} — {{ h.hostname }}</h2>
+        <div class="muted">
+          MAC: {{ h.mac or '—' }} | Type: {{ h.device_type }} | OS: {{ h.os_guess or '—' }} | Trust: {{ 'Rogue' if h.is_rogue else 'Trusted' }}
+        </div>
+
+        <h3>Open Ports</h3>
+        {% if h.open_ports %}
+          <table>
+            <thead><tr><th>Proto</th><th>Port</th><th>Service</th><th>Banner/Status</th></tr></thead>
+            <tbody>
+              {% for p in h.open_ports %}
+                <tr>
+                  <td>{{ p.proto }}</td>
+                  <td><code>{{ p.port }}</code></td>
+                  <td>{{ p.service }}</td>
+                  <td>{{ p.banner }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="muted">No open ports detected.</div>
+        {% endif %}
+
+        <h3>Vulnerabilities</h3>
+        {% if h.vulnerabilities %}
+          <table>
+            <thead><tr><th>Severity</th><th>Name</th><th>Source</th><th>Details</th></tr></thead>
+            <tbody>
+              {% for v in h.vulnerabilities %}
+                <tr>
+                  <td class="sev-{{ v.severity }}">{{ v.severity }}</td>
+                  <td>
+                    {% if v.cve_id %}<code>{{ v.cve_id }}</code><br />{% endif %}
+                    {{ v.name }}
+                  </td>
+                  <td>{{ v.source }}</td>
+                  <td>
+                    <div>{{ v.description }}</div>
+                    {% if v.recommendation %}<div class="muted"><b>Fix:</b> {{ v.recommendation }}</div>{% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="muted">No vulnerabilities recorded.</div>
+        {% endif %}
+
+        {% if h.web_findings %}
+          <h3>HTTP Discovery</h3>
+          {% for scheme, items in h.web_findings.items() %}
+            <div><b>{{ scheme|upper }}</b> — {{ items|length }} finding(s)</div>
+            {% if items %}
+              <ul>
+                {% for it in items[:20] %}
+                  <li><code>{{ it.status }}</code> <a href="{{ it.url }}">{{ it.url }}</a></li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      </div>
+    {% endfor %}
+  </body>
+</html>
+
