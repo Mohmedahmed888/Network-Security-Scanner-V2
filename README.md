@@ -148,13 +148,9 @@ network-security-scanner/
 Edit `config.py` to customize:
 
 ### Trusted IPs
-Add your trusted device IPs to the whitelist:
-```python
-TRUSTED_IPS = [
-    "192.168.1.1",   # Router
-    "192.168.1.10",  # Your PC
-]
-```
+Do **not** put your real network allowlist in committed code. Copy `netscan/local_settings.example.py` to `netscan/local_settings.py` and set `TRUSTED_IPS` there. That file stays on your machine only (it is gitignored).
+
+General port/vuln data stays in `netscan/config.py`.
 
 ### Vulnerability Database
 Modify or add new vulnerabilities in the `VULNERABILITIES` dictionary.

@@ -6,7 +6,7 @@ Ports, Vulnerabilities, Trusted IPs, MAC OUI Database
 import subprocess
 import re
 import platform
-from typing import Optional
+from typing import List, Optional
 
 # ─────────────────────────────────────────────────
 # Ports & Services
@@ -534,9 +534,21 @@ VENDOR_TO_DEVICE = {
     "ASUS":         "ASUS Device",
 }
 
-TRUSTED_IPS: list = [
-    "192.168.1.1",
-]
+def _load_trusted_ips() -> List[str]:
+    """Load from `local_settings.py` (local only, not on GitHub)."""
+    try:
+        from . import local_settings as loc
+    except ImportError:
+        return []
+    ips = getattr(loc, "TRUSTED_IPS", None)
+    if ips is None:
+        return []
+    return list(ips)
+
+
+# Per-machine / network allowlist. Define in `netscan/local_settings.py`
+# (copy from `local_settings.example.py`; that file stays local and is gitignored).
+TRUSTED_IPS: List[str] = _load_trusted_ips()
 
 
 def get_advice_for_port(port: int) -> str:

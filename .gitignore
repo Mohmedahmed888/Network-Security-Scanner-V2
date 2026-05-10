@@ -73,3 +73,6 @@ id_rsa.pub
 *-secrets.*
 credentials.json
 
+# Local-only NetScan overrides (trusted IPs, optional non-secret toggles)
+netscan/local_settings.py
+
